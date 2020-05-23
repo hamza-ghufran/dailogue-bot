@@ -1,20 +1,20 @@
 const {
-    validateEmail,
-    validateDateOfBirth
+	validateEmail,
+	validateDateOfBirth
 } = require('../../../utils/helpers')
 
 module.exports = (data) => {
-    let { email, dob } = data
-    let errors = []
+	let { email, dob } = data
+	let errors = []
 
-    if (!validateEmail(email)) {
-        errors.push("Invalid Email")
-    }
+	if (!validateEmail(email)) {
+		errors.push("Invalid Email")
+	}
 
-    if (!validateDateOfBirth(dob)) {
-        errors.push("Invalid Date of Birth")
-    }
+	if (!validateDateOfBirth(dob)) {
+		errors.push("Invalid Date of Birth")
+	}
 
-    return errors
+	return errors
 }
 
