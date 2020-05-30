@@ -23,6 +23,7 @@ app.post('/webhook', (req, res) => {
 		req.body.entry.forEach(entry => {
 			entry.messaging.forEach(event => {
 
+				console.log(event.sender.id)
 				if (event.postback) {
 					let dataObj = {
 						user_id: event.sender.id,

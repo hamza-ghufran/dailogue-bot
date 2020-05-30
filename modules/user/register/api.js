@@ -1,15 +1,8 @@
 var auth_latch = false
-const validator = require('./validate')
-const { listRequirements } = require('../../../utils/helpers')
 const db = require('../db/db')
-/**
- * email
- * name
- * password
- * dob
- * user_id
- */
-let user_details = []
+const validator = require('./validate')
+const cache = require('../../cache/api').cache
+const { listRequirements } = require('../../../utils/helpers')
 
 const requestUserToRegister = (data, cb) => {
 	const { user_id, message } = data
@@ -21,7 +14,7 @@ const requestUserToRegister = (data, cb) => {
 		return cb(null, { code: "NEW_USER", user_id: user_id })
 	}
 
-	user_details.push(message)
+	cache.push(data.user_id, message)
 
 	if (user_details.length === 4) {
 		user_details.push(user_id)
