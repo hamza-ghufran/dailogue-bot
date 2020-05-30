@@ -1,20 +1,16 @@
-const { mysql } = require('../../../utils/knex')
+const db = require('../db/db')
 
 module.exports = (data, cb) => {
-	let user_chat = mysql('user_chat').returning('id')
-
-	return user_chat
-		.insert({
-			user_id: data.user_id,
-			request: data.request,
-			response: data.response,
-			created_at: new Date()
-		})
-		.then((user_chat) => {
+	db.logUserChat({
+		user_id: data.user_id,
+		request: data.request,
+		response: data.response,
+		created_at: new Date()
+	})
+		.then(() => {
 			return cb(null, { code: 'ACTIVITY_LOGGED' })
 		})
-		.catch((error) => {
-			console.log(error)
+		.catch((err) => {
 			return cb({ code: 'DB_INSERT_ERROR' })
 		})
 }

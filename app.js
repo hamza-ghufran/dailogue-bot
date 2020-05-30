@@ -45,7 +45,6 @@ app.post('/webhook', (req, res) => {
 						}
 
 						if (response.code === 'VALID_USER') {
-							dataObj.user_name = response.user_name
 							processMessage(dataObj);
 						}
 						else {

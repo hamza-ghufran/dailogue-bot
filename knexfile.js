@@ -4,10 +4,10 @@ module.exports = {
 	development: {
 		client: 'mysql',
 		connection: {
-			host: config.mySqlURL,
-			user: config.mySqlUser,
-			password: config.mySqlPassword,
-			database: config.mySqlDB
+			host: config.mysql.host,
+			user: config.mysql.user,
+			password: config.mysql.password,
+			database: config.mysql.database
 		},
 		seeds: {
 			directory: __dirname + '/db/seeds'

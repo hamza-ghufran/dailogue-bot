@@ -1,15 +1,14 @@
-const { mysql } = require('../../../utils/knex')
+const db = require('../db/db')
 
 module.exports = (data, cb) => {
 	const { user_id } = data
 
-	let query = mysql('user')
-
-	return query
-		.where('user_id', user_id)
+	return db.findUser({
+		user_id: user_id
+	})
 		.then(function (user) {
-			if (user.length) {
-				return cb(null, { code: 'VALID_USER', user_name: user[0].name })
+			if (user) {
+				return cb(null, { code: 'VALID_USER' })
 			}
 
 			return cb(null, { code: 'INVALID_USER' })

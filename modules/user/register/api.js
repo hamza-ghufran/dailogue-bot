@@ -1,8 +1,7 @@
 var auth_latch = false
 const validator = require('./validate')
-const { mysql } = require('../../../utils/knex')
 const { listRequirements } = require('../../../utils/helpers')
-
+const db = require('../db/db')
 /**
  * email
  * name
@@ -27,7 +26,15 @@ const requestUserToRegister = (data, cb) => {
 	if (user_details.length === 4) {
 		user_details.push(user_id)
 
-		createNewUser(user_details, (err, res) => {
+		let dataObj = {
+			dob: user_details[3],
+			name: user_details[1],
+			email: user_details[0],
+			user_id: user_details[4],
+			password: user_details[2],
+		}
+
+		createNewUser(dataObj, (err, res) => {
 			if (err) {
 				return cb(null)
 			}
@@ -38,36 +45,30 @@ const requestUserToRegister = (data, cb) => {
 }
 
 const createNewUser = (data, cb) => {
-	const user = mysql('user')
-	const email = data[0],
-		name = data[1],
-		password = data[2],
-		dob = data[3],
-		user_id = data[4];
+	let errors = validator({
+		email: data.email,
+		dob: data.dob
+	})
 
-	let errors = validator({ email, dob })
-
-	if (errors.length) {
+	if (errors) {
 		user_details.length = 0
-		listRequirements(user_id)
+		listRequirements(data.user_id)
 
 		return cb(null, { code: 'INVALID ARGUMENTS', user_id: user_id, message: errors.toString() })
 	}
 
-	user
-		.insert({
-			email,
-			name,
-			password,
-			dob,
-			user_id,
+	db.createUser({
+		dob: data.dob,
+		name: data.name,
+		email: data.email,
+		user_id: data.user_id,
+		password: data.password,
+	})
+		.then(() => {
+			return cb(null, { code: 'USER_CREATED', user_id: data.user_id })
 		})
-		.then((user) => {
-			return cb(null, { code: 'USER_CREATED', user_id: user_id })
-		})
-		.catch((error) => {
-			console.log(error)
-			return cb({ code: 'DB_INSERT_ERROR', user_id: user_id })
+		.catch((err) => {
+			return cb({ code: 'DB_INSERT_ERROR', user_id: data.user_id })
 		})
 }
 

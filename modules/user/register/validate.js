@@ -15,6 +15,6 @@ module.exports = (data) => {
 		errors.push("Invalid Date of Birth")
 	}
 
-	return errors
+	return errors.length
 }
 
