@@ -1,4 +1,3 @@
-var auth_latch = false
 const db = require('../db/db')
 const validator = require('./validate')
 const cache = require('../../cache/api').cache
@@ -7,34 +6,56 @@ const { listRequirements } = require('../../../utils/helpers')
 const requestUserToRegister = (data, cb) => {
 	const { user_id, message } = data
 
-	if (!auth_latch) {
-		auth_latch = true
-		listRequirements(user_id)
-
-		return cb(null, { code: "NEW_USER", user_id: user_id })
-	}
-
-	cache.push(data.user_id, message)
-
-	if (user_details.length === 4) {
-		user_details.push(user_id)
-
-		let dataObj = {
-			dob: user_details[3],
-			name: user_details[1],
-			email: user_details[0],
-			user_id: user_details[4],
-			password: user_details[2],
+	cache.exists(user_id, (err, user) => {
+		if (err) {
+			return cb({ code: err })
 		}
 
-		createNewUser(dataObj, (err, res) => {
-			if (err) {
-				return cb(null)
-			}
+		if (!user) {
+			listRequirements(user_id)
 
-			return cb(null, res)
+			cache.push(user_id, user_id)
+
+			return cb(null, { code: "NEW_USER", user_id: user_id })
+		}
+
+		storeUserInfo(data, cb)
+	})
+}
+
+
+const storeUserInfo = (data, cb) => {
+	const { user_id, message } = data
+
+	cache.push(user_id, message)
+		.then(() => {
+			cache.list(user_id, (err, list) => {
+				if (err) {
+					return cb({ code: err })
+				}
+
+				if (list.length !== 5) return
+
+				let dataObj = {
+					dob: list[4],
+					name: list[2],
+					email: list[1],
+					user_id: list[0],
+					password: list[3],
+				}
+
+				createNewUser(dataObj, (err, res) => {
+					if (err) {
+						return cb(null)
+					}
+
+					return cb(null, res)
+				})
+			})
 		})
-	}
+		.catch((err) => {
+			console.log(err)
+		})
 }
 
 const createNewUser = (data, cb) => {
@@ -43,11 +64,14 @@ const createNewUser = (data, cb) => {
 		dob: data.dob
 	})
 
-	if (errors) {
-		user_details.length = 0
-		listRequirements(data.user_id)
+	if (errors.length) {
+		cache.deleteList(data.user_id)
+			.then(() => {
+				cache.push(data.user_id, data.user_id)
+				listRequirements(data.user_id)
+			})
 
-		return cb(null, { code: 'INVALID ARGUMENTS', user_id: user_id, message: errors.toString() })
+		return cb(null, { code: 'INVALID ARGUMENTS', user_id: data.user_id, message: errors.toString() })
 	}
 
 	db.createUser({
@@ -66,6 +90,6 @@ const createNewUser = (data, cb) => {
 }
 
 module.exports = {
-	requestUserToRegister: requestUserToRegister,
 	createNewUser: createNewUser,
+	requestUserToRegister: requestUserToRegister,
 }

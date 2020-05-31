@@ -5,6 +5,7 @@ function cache() {
 }
 
 cache.prototype.setKey = function (key, value, ttl, cb) {
+  this.client.set(key, value, cb)
   // async.auto({
   //   set: function (callback) {
   //     this.client.set(key, value, callback)
@@ -15,25 +16,36 @@ cache.prototype.setKey = function (key, value, ttl, cb) {
   // }, cb)
 }
 
-cache.prototype.getKey = function (key, cb) {
-  this.client.get(key, cb)
+cache.prototype.exists = function (key, cb) {
+  this.client.exists(key, cb)
+}
+
+cache.prototype.getKey = function (key) {
+  this.client.get(key)
 }
 
 cache.prototype.deleteKey = function (key, cb) {
   this.client.expire(key, 1, cb)
 }
 
-/**
- * email
- * name
- * password
- * dob
- * user_id
- */
-
-cache.prototype.push = function (key, value, cb) {
-  this.client.rpush(key, value)
+cache.prototype.push = function (key, value) {
+  /**
+  * email
+  * name
+  * password
+  * dob
+  */
+  return Promise.resolve(this.client.rpush(key, value))
 }
 
+cache.prototype.list = function (key, cb) {
+  this.client.lrange(key, 0, -1, cb)
+}
 
-module.exports.cache = new cache()
+cache.prototype.deleteList = function (key, cb) {
+  return Promise.resolve(this.client.del(key))
+}
+
+let redisCache = new cache()
+
+module.exports.cache = redisCache
